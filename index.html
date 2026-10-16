@@ -10,8 +10,6 @@
     <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Noto+Naskh+Arabic:wght@400;600;700&display=swap" rel="stylesheet">
     <!-- FontAwesome CDN -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- MediaPipe Vision Tasks CDN for HandLandmarker -->
-    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/vision@0.10.3/vision_bundle.js" crossorigin="anonymous"></script>
     <style>
         body { 
             font-family: 'Noto Naskh Arabic', 'Amiri', serif; 
@@ -26,20 +24,17 @@
             50% { box-shadow: 0 0 32px rgba(16, 185, 129, 0.95); }
         }
         .pulse-glow { animation: pulseGlow 2s infinite; }
-        /* RTL Text adjustments */
-        .arabic-num { font-feature-settings: "tnam" 1; }
     </style>
 </head>
 <body class="h-full w-full bg-slate-950 text-white relative overflow-hidden flex flex-col justify-between">
 
-    <!-- Fullscreen Webcam Background -->
     <div class="absolute inset-0 z-0 overflow-hidden bg-slate-900">
         <video id="webcam" autoplay playsinline muted class="absolute inset-0 w-full h-full object-cover mirror opacity-40"></video>
         <canvas id="effect-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-1"></canvas>
     </div>
 
     <!-- Activation Screen (Required for getUserMedia & Web Audio API user gesture) -->
-    <div id="start-screen" class="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+    <div id="start-screen" class="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center" dir="ltr">
         <div class="bg-slate-900/90 border border-slate-700/80 p-8 rounded-3xl max-w-xl w-full shadow-2xl relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500"></div>
             <div class="inline-flex items-center justify-center w-20 h-20 bg-emerald-500/20 text-emerald-400 rounded-2xl mb-5 text-3xl shadow-inner">
@@ -47,20 +42,20 @@
             </div>
             <h1 class="text-3xl md:text-4xl font-black tracking-tight text-white mb-2">ڤنديديقن إسلام تاهون ٥</h1>
             <p class="text-emerald-400 font-bold mb-6 text-base tracking-wider">Created by Cikgu Faizal</p>
-            <p class="text-slate-300 text-sm md:text-base mb-8 leading-relaxed">
-                Permainan interaktif pengesanan hujung jari tangan menggunakan kamera web. Halakan jari telunjuk anda ke arah jawapan dan tahan selama 0.6 saat untuk memilih!
+            <p class="text-slate-300 text-sm md:text-base mb-8 leading-relaxed text-right">
+                ڤرماءينن اينتركتيف ڤڠساسن هوجوڠ جاري تڠهن مڠڬوناکن کمرا ويب. هالاکن جاري تلونجوک اندا ك اره جاواڤن دان تاهان سلاما 0.6 ساعت اونتوق مميليه!
             </p>
-            <div id="error-box" class="hidden mb-6 p-4 bg-rose-500/20 border border-rose-500 text-rose-300 rounded-xl text-sm"></div>
+            <div id="error-box" class="hidden mb-6 p-4 bg-rose-500/20 border border-rose-500 text-rose-300 rounded-xl text-sm text-right"></div>
             <button id="activate-btn" onclick="app.initCameraAndGame()" class="w-full py-4 px-6 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-2xl shadow-lg shadow-emerald-600/30 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-xl">
                 <i class="fa-solid fa-video text-2xl"></i> Aktifkan Kamera & Mula Main
             </button>
-            <div class="mt-4 text-xs text-slate-400">Pastikan pencahayaan bilik mencukupi dan hanya tangan anda kelihatan di kamera.</div>
+            <div class="mt-4 text-xs text-slate-400">ڤاستيكن ڤنچهاياءن بيليک منچوکڤي دان هاڽ تڠهن اندا کليهتن د کمرا.</div>
         </div>
     </div>
 
     <!-- Compact Game Header -->
     <header class="relative z-20 w-full px-4 py-3 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 flex items-center justify-between shadow-md">
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-3" dir="ltr">
             <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg font-black border border-emerald-500/30">
                 ڤإ
             </div>
@@ -71,7 +66,7 @@
         </div>
         
         <!-- Score & Status Indicators -->
-        <div class="flex items-center gap-4 md:gap-6">
+        <div class="flex items-center gap-4 md:gap-6" dir="ltr">
             <div class="flex items-center gap-2 bg-slate-800/80 px-3 py-1.5 rounded-xl border border-slate-700">
                 <i class="fa-solid fa-star text-amber-400 text-sm"></i>
                 <span class="text-xs text-slate-400 font-bold">Skor:</span>
@@ -110,7 +105,7 @@
 
         <!-- Matching Challenge Container (Hidden by default, triggered every 10 questions) -->
         <div id="matching-container" class="hidden w-full bg-slate-900/90 backdrop-blur-md border border-cyan-500/50 p-6 rounded-3xl shadow-2xl mb-6 relative overflow-hidden">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-2">
                 <div>
                     <span class="px-3 py-1 bg-cyan-500/20 text-cyan-300 text-xs font-bold rounded-lg border border-cyan-500/30">Cabaran Padanan</span>
                     <h3 class="text-xl md:text-2xl font-bold text-white mt-1">Padankan perkataan dengan kategori yang betul!</h3>
@@ -132,7 +127,7 @@
     </main>
 
     <!-- Floating Cursor Laser Indicator -->
-    <div id="cursor-pointer" class="fixed z-40 pointer-events-none transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 hidden">
+    <div id="cursor-pointer" class="fixed z-40 pointer-events-none transform -translate-x-1/2 -translate-y-1/2 transition-transform duration-75 hidden" dir="ltr">
         <div class="relative flex items-center justify-center">
             <!-- Outer dwell progress ring -->
             <svg class="w-16 h-16 transform -rotate-90">
@@ -153,8 +148,10 @@
         <span id="camera-status" class="text-amber-400"><i class="fa-solid fa-video-slash"></i> Kamera Belum Aktif</span>
     </footer>
 
-    <!-- Application Logic -->
-    <script>
+    <!-- Application Logic with ES Module Imports for MediaPipe -->
+    <script type="module">
+        import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/+esm";
+
         // --- SOUND EFFECTS (Web Audio API Synthesizer) ---
         class SoundFX {
             constructor() {
@@ -288,7 +285,6 @@
             { q: "اڤاكه صفة برلاوانن باڬي صفة 'أمانة'؟", options: ["خيانة", "بوهوڠ", "مالس", "سومبوڠ"], answer: 0, category: "أدب" }
         ];
 
-        // Auto-generate Arabic/Jawi indexed question entries up to 100 for comprehensive curriculum coverage
         const categoriesList = ["Al-Quran", "Akidah", "Ibadah", "Sirah", "Adab", "Jawi"];
         for (let i = QUESTIONS_DB.length + 1; i <= 100; i++) {
             QUESTIONS_DB.push({
@@ -299,7 +295,6 @@
             });
         }
 
-        // --- STREAMING_CHUNK:Building Game state logic & predictor loops... ---
         // GAME STATE MACHINE
         class GameApp {
             constructor() {
@@ -324,6 +319,7 @@
                 const errorBox = document.getElementById('error-box');
                 btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Memulakan Kamera...`;
                 btn.disabled = true;
+                errorBox.classList.add('hidden');
 
                 try {
                     sfx.init();
@@ -340,8 +336,8 @@
                         };
                     });
 
-                    // Initialize MediaPipe HandLandmarker via CDN
-                    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/vision@0.10.3/wasm");
+                    // Initialize MediaPipe HandLandmarker via ES module CDN
+                    const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
                     this.handLandmarker = await HandLandmarker.createFromOptions(vision, {
                         baseOptions: {
                             modelAssetPath: `https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task`,
@@ -394,7 +390,6 @@
                 const optionsGrid = document.getElementById('options-grid');
                 optionsGrid.innerHTML = '';
 
-                // Option labels
                 const optionLabels = ["أ", "ب", "ج", "د"];
 
                 qData.options.forEach((opt, idx) => {
@@ -450,7 +445,6 @@
                 const words = ["صلاة الضحى", "سورة الملك", "القوي"];
                 const categories = ["Ibadah", "Al-Quran", "Akidah"];
                 
-                // Shuffle categories for pairing
                 const shuffledCategories = [...categories].sort(() => Math.random() - 0.5);
 
                 const rightCol = document.getElementById('match-right-col');
@@ -537,10 +531,8 @@
                         this.particleSys.updateAndDraw();
 
                         if (results.landmarks && results.landmarks.length > 0) {
-                            // Detect Index Finger Tip ONLY (Landmark 8)
                             const indexFingerTip = results.landmarks[0][8];
                             
-                            // Map normalized coordinates to screen dimensions with mirror correction
                             const screenX = (1 - indexFingerTip.x) * window.innerWidth;
                             const screenY = indexFingerTip.y * window.innerHeight;
 
@@ -548,7 +540,6 @@
                             this.cursorElement.style.top = `${screenY}px`;
                             this.cursorElement.classList.remove('hidden');
 
-                            // Element hit-testing
                             const hoveredElement = document.elementFromPoint(screenX, screenY);
                             this.handleInteraction(hoveredElement);
                         } else {
@@ -608,7 +599,6 @@
                 const elapsed = now - this.dwellStartTime;
                 const progress = Math.min(elapsed / this.dwellDuration, 1);
                 
-                // Update circle stroke dash offset for 0.6 second dwell ring completion
                 const dashOffset = 175.9 * (1 - progress);
                 this.dwellRing.style.strokeDashoffset = dashOffset;
 
@@ -630,7 +620,7 @@
             }
         }
 
-        const app = new GameApp();
+        window.app = new GameApp();
     </script>
 </body>
 </html>
