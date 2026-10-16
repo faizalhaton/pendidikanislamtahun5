@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ڤنديديقن إسلام تاهون 5</title>
+    <title>ڤنديديقن إسلام تاهون ٥</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Google Fonts for Jawi / Arabic & Fredoka -->
@@ -34,7 +34,6 @@
 </head>
 <body class="h-full w-full bg-gradient-to-br from-emerald-400 via-teal-300 to-sky-400 text-slate-800 relative overflow-hidden flex flex-col justify-between">
 
-    <!-- Background Canvas for Particles -->
     <canvas id="effect-canvas" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
 
     <!-- Background Decorative Elements -->
@@ -67,7 +66,7 @@
 
             <div id="error-box" class="hidden mb-5 p-3.5 bg-rose-100 border-2 border-rose-400 text-rose-700 rounded-2xl text-xs md:text-sm text-center font-semibold"></div>
 
-            <button id="activate-btn" onclick="app.initCameraAndGame()" class="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-500/40 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-lg md:text-xl border-b-4 border-teal-700">
+            <button id="activate-btn" class="w-full py-4 px-6 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-extrabold rounded-2xl shadow-xl shadow-emerald-500/40 transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 text-lg md:text-xl border-b-4 border-teal-700">
                 <i class="fa-solid fa-video text-2xl"></i> AKTIFKAN KAMERA & MULA
             </button>
             <div class="mt-3 text-[11px] text-slate-500 font-medium">Pastikan pencahayaan terang dan tangan anda kelihatan di kamera.</div>
@@ -105,7 +104,6 @@
         </div>
     </header>
 
-    <!-- Main Game Container: Side-by-Side Layout -->
     <main class="relative z-20 flex-1 w-full max-w-7xl mx-auto p-3 md:p-5 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6 overflow-hidden">
         
         <!-- LEFT COLUMN: Dedicated Live Camera Feed & Finger Gesture Status Box -->
@@ -193,7 +191,7 @@
     </footer>
 
     <script type="module">
-        import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm";
+        import { FilesetResolver, HandLandmarker } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/+esm";
 
         // --- SOUND EFFECTS SYNTHESIZER ---
         class SoundFX {
@@ -364,11 +362,11 @@
                         audio: false 
                     });
                     this.videoElement.srcObject = stream;
-                    await new Promise((resolve) => {
+                    await new Promise((resolve, reject) => {
                         this.videoElement.onloadedmetadata = () => {
-                            this.videoElement.play();
-                            resolve();
+                            this.videoElement.play().then(resolve).catch(reject);
                         };
+                        setTimeout(resolve, 2000); // fallback timeout
                     });
 
                     const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/wasm");
@@ -444,7 +442,6 @@
             }
 
             selectOption(choiceIdx) {
-                // choiceIdx is 0, 1, 2, or 3 corresponding to 1, 2, 3, 4 fingers
                 const qData = QUESTIONS_DB[this.currentQuestionIdx];
                 const optionCards = document.querySelectorAll('#options-grid > div');
                 
@@ -517,7 +514,6 @@
                 const cats = document.querySelectorAll('.match-cat');
 
                 if (!this.matchingState.selectedWord) {
-                    // Select word by finger count (1, 2, or 3)
                     const targetWordEl = words[fingerCount - 1];
                     if (targetWordEl && targetWordEl.style.opacity !== '0.4') {
                         sfx.select();
@@ -526,7 +522,6 @@
                         document.getElementById('match-status').innerText = `Perkataan dipilih (${targetWordEl.getAttribute('data-word')}). Sila tunjuk jari untuk pilih Kategori padanan!`;
                     }
                 } else {
-                    // Select category by finger count
                     const targetCatEl = cats[fingerCount - 1];
                     if (targetCatEl) {
                         const word = this.matchingState.selectedWord.getAttribute('data-word');
@@ -581,21 +576,11 @@
             }
 
             countRaisedFingers(landmarks) {
-                // Hand landmarks: 
-                // Thumb tip: 4, PIP: 2
-                // Index tip: 8, PIP: 6
-                // Middle tip: 12, PIP: 10
-                // Ring tip: 16, PIP: 14
-                // Pinky tip: 20, PIP: 18
                 let count = 0;
-                
-                // For simplicity and robust detection in front of webcam:
-                // Check y-coordinates of fingertips vs PIP joints (smaller y means higher on screen)
                 if (landmarks[8].y < landmarks[6].y) count++;   // Index
                 if (landmarks[12].y < landmarks[10].y) count++; // Middle
                 if (landmarks[16].y < landmarks[14].y) count++; // Ring
                 if (landmarks[20].y < landmarks[18].y) count++; // Pinky
-
                 return count;
             }
 
@@ -622,7 +607,6 @@
                             const landmarks = results.landmarks[0];
                             detectedFingers = this.countRaisedFingers(landmarks);
                             
-                            // Highlight index finger tip on camera canvas
                             const tip = landmarks[8];
                             const camX = (1 - tip.x) * this.cameraCanvas.width;
                             const camY = tip.y * this.cameraCanvas.height;
@@ -641,7 +625,6 @@
 
                         document.getElementById('detected-gesture-badge').innerText = `Pengesanan: ${detectedFingers} Jari`;
 
-                        // Handle Gesture Hold Timer (1 second)
                         const now = Date.now();
                         const progressBar = document.getElementById('gesture-progress-bar');
 
@@ -655,7 +638,6 @@
                             const progress = Math.min(elapsed / this.gestureHoldDuration, 1);
                             progressBar.style.width = `${progress * 100}%`;
 
-                            // Highlight corresponding option card
                             document.querySelectorAll('#options-grid > div').forEach((el, idx) => {
                                 if (idx === detectedFingers - 1) {
                                     el.classList.add('ring-4', 'ring-amber-400', 'scale-[1.02]');
@@ -689,7 +671,10 @@
             }
         }
 
-        window.app = new GameApp();
+        const app = new GameApp();
+        document.getElementById('activate-btn').addEventListener('click', () => {
+            app.initCameraAndGame();
+        });
     </script>
 </body>
 </html>
